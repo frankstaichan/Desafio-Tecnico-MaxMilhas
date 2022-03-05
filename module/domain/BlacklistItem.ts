@@ -5,33 +5,55 @@ export interface IBlacklistItemProps {
     updatedAt: Date
 }
 
+export enum BlacklistStatus {
+    Free = 'FREE',
+    Blocked = 'BLOCK'
+}
+
 export class BlacklistItem implements IBlacklistItemProps{
 
-    props: IBlacklistItemProps
+    item: IBlacklistItemProps
 
     private constructor(props: IBlacklistItemProps) {
-        this.props = props
+        this.item = props
     }
 
     get cpf(): string {
-        return this.props.cpf
+        return this.item.cpf
     }
 
     get status(): string {
-        return this.props.status
+        return this.item.status
     }
 
     get createdAt(): Date {
-        return this.props.createdAt
+        return this.item.createdAt
     }
 
     get updatedAt(): Date {
-        return this.props.updatedAt
+        return this.item.updatedAt
+    }
+
+    private changeUpdatedAt() {
+        this.item.updatedAt = new Date()
+    }
+
+    private changeStatus(status: string) {
+        this.item.status = status
+        this.changeUpdatedAt()
+    }
+
+    public changeStatusFree() {
+        this.changeStatus(BlacklistStatus.Free)
+    }
+
+    public changeStatusBlock() {
+        this.changeStatus(BlacklistStatus.Blocked)
     }
 
     static createBlacklistItem(props: IBlacklistItemProps) {
         if (!props.cpf || !props.status)
-            return 'Missing data for BlacklistItem creation'
+            throw new Error('Missing data for BlacklistItem creation')
         
         return new BlacklistItem(props)
     }

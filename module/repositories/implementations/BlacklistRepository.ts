@@ -1,54 +1,137 @@
-import { IBlacklistRepository } from '../IBlacklistRepository'
+import { IBlacklistRepository, Result } from '../IBlacklistRepository'
 import { BlacklistItem, IBlacklistItemProps } from '../../domain/BlacklistItem'
-import * as lowdb from 'lowdb'
 import { Low, JSONFile } from 'lowdb'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
-type Data = {
-    blacklist: IBlacklistItemProps[]
-}
+type Data = { blacklist: BlacklistItem[] }
 
 const __dirname: string = dirname(fileURLToPath('../../models/Blacklist.json'));
 
-// Use JSON file for storage
 const file: string = join(__dirname, 'db.json')
 const adapter = new JSONFile<Data>(file)
 const db = new Low(adapter)
 
-class BlacklistRepository implements IBlacklistRepository {
+export class BlacklistRepository implements IBlacklistRepository {
 
     public constructor(){
 
     }
 
-    async searchItemByCPF(cpf: string): Promise<IBlacklistItemProps> {
+    async searchItemByCPF(cpf: string): Promise<Result> {
+
         await db.read()
 
         db.data = db.data || { blacklist: [] }
         const item = db.data.blacklist.find(item => item.cpf == cpf)
 
-        if (item === undefined)
-            throw new Error('The value was promised to always be there!');
+        const result: Result = {
+            success: true,
+            message: ''
+        }
 
-        return item
+        if (!item) {
+            result.success = false
+            result.message = `There is not an item with the ${cpf} CPF in the Blacklist.`
+            return result
+        }
+
+        result.message = `Found an item in the Blacklist with the ${cpf} CPF.`
+        result.item = item
+
+        return result
     }
 
-    async includeNewItem(BlacklistItemEntity: BlacklistItem): Promise<IBlacklistItemProps> {
+    async includeNewItem(blacklistItemEntity: BlacklistItem): Promise<Result> {
         await db.read()
 
         db.data = db.data || { blacklist: [] }
-        db.data.blacklist.push(BlacklistItemEntity.props)
+        const item = db.data.blacklist.find(item => item.cpf == blacklistItemEntity.cpf)
 
-        return BlacklistItemEntity.props
+        const result: Result = {
+            success: true,
+            message: ''
+        }
+
+        if (item) {
+            result.success = false
+            result.message = `The ${blacklistItemEntity.cpf} CPF is already in the Blacklist.`
+            result.item = item
+            return result
+        }
+
+        db.data.blacklist.push(blacklistItemEntity)
+
+        result.message = `CPF ${blacklistItemEntity.cpf} has been included in the Blacklist.`
+        result.item = blacklistItemEntity
+
+        return result
     }
 
-    async removeItem(cpf: string): Promise<string>{
+    async deleteItemByCPF(cpf: string): Promise<Result> {
         await db.read()
 
         db.data = db.data || { blacklist: [] }
-        db.data.blacklist.
+        const item = db.data.blacklist.find(item => item.cpf == cpf)
 
+        const result: Result = {
+            success: true,
+            message: ''
+        }
+
+        if (!item) {
+            result.success = false
+            result.message = `There is no item with the ${cpf} CPF in the Blacklist.`
+            return result
+        }
+
+        const index: number = db.data.blacklist.indexOf(item)
+        db.data.blacklist.splice(index, 1)
+
+        result.message = `CPF ${cpf} successfully deleted from the Blacklist.`
+        result.item = item
+
+        return result
+    }
+
+    async changeStatusCPF(cpf: string, status: string): Promise<Result> {
+
+        const result: Result = {
+            success: true,
+            message: ''
+        }
+
+        await db.read()
+
+        db.data = db.data || { blacklist: [] }
+        const item = db.data.blacklist.find(item => {
+            if (item.cpf === cpf){
+
+                result.item = item
+
+                switch (status.toUpperCase()) {
+                    case 'FREE': 
+                        item.changeStatusFree()
+                        result.success = true
+                        result.message = `${cpf} CPF status has been changed to 'FREE'`
+                        break
+                    case 'BLOCK':
+                        item.changeStatusBlock()
+                        result.success = true
+                        result.message = `${cpf} CPF status has been changed to 'BLOCK'`
+                        break
+                    default:
+                        result.success = false
+                        result.message = `Invalid status. Status can only be 'FREE' or 'BLOCK'`
+                        break
+                }
+            } else {
+                result.success = false
+                result.message = `CPF ${cpf} is not in the Blacklist.`
+            }
+        })
+
+        return result
     }
 
 

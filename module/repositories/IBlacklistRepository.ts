@@ -1,12 +1,19 @@
 import { BlacklistItem, IBlacklistItemProps } from '../domain/BlacklistItem';
 
+export type Result = { 
+    success: boolean,
+    message: string,
+    item?: BlacklistItem
+}
 
 export interface IBlacklistRepository {
 
-    searchItemByCPF(cpf: string): Promise<IBlacklistItemProps>
+    includeNewItem(BlacklistItemEntity: BlacklistItem): Promise<Result>
 
-    includeNewItem(BlacklistItemEntity: BlacklistItem): Promise<IBlacklistItemProps>
+    searchItemByCPF(cpf: string): Promise<Result>
 
-    deleteItemByCPF(cpf: string): Promise<string>
+    deleteItemByCPF(cpf: string): Promise<Result>
+
+    changeStatusCPF(cpf: string, status: string): Promise<Result>
     
 }
