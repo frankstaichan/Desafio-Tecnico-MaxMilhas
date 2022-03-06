@@ -1,16 +1,43 @@
-import { IBlacklistRepository, Result } from '../IBlacklistRepository'
+import { IBlacklistRepository, Result, Data, BlacklistStatus } from '../IBlacklistRepository'
 import { BlacklistItem, IBlacklistItemProps } from '../../domain/BlacklistItem'
-import { Low, JSONFile } from 'lowdb'
-import { join, dirname } from 'path'
-import { fileURLToPath } from 'url'
+import path from "path";
+import fspromises from "fs/promises";
+import fs from "fs";
 
-type Data = { blacklist: BlacklistItem[] }
 
-const __dirname: string = dirname(fileURLToPath('../../models/Blacklist.json'));
+const filePath = path.join(__dirname, "../../models/Blacklist.json")
 
-const file: string = join(__dirname, 'db.json')
-const adapter = new JSONFile<Data>(file)
-const db = new Low(adapter)
+const initJSONDatabase = <T>(initialData: T) => {
+    const read = async () => {
+      const data = await fspromises.readFile(filePath, { encoding: "utf-8" })
+      return JSON.parse(data) as unknown as T
+    }
+  
+    const write = async (data: T) => {
+      await fspromises.writeFile(filePath, JSON.stringify(data), {
+        encoding: "utf-8",
+      })
+    }
+  
+    if (!fs.existsSync(filePath)) {
+      write(initialData)
+    }
+  
+    return {
+      read,
+      write,
+    }
+}
+
+const formatCPF = (cpf: string): string => {
+    const validCPF = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, 
+        function( regex, param1, param2, param3, param4 ) {
+            return param1 + '.' + param2 + '.' + param3 + '-' + param4;
+        })
+    return validCPF
+}
+
+const db = initJSONDatabase<Data>({ blacklist: [] })
 
 export class BlacklistRepository implements IBlacklistRepository {
 
@@ -20,38 +47,59 @@ export class BlacklistRepository implements IBlacklistRepository {
 
     async searchItemByCPF(cpf: string): Promise<Result> {
 
-        await db.read()
-
-        db.data = db.data || { blacklist: [] }
-        const item = db.data.blacklist.find(item => item.cpf == cpf)
-
         const result: Result = {
             success: true,
             message: ''
         }
 
-        if (!item) {
+        if (cpf.length != 11) {
             result.success = false
-            result.message = `There is not an item with the ${cpf} CPF in the Blacklist.`
+            result.message = 'The CPF searched has the wrong number of digits. CPFs have 11 digits.'
             return result
         }
 
-        result.message = `Found an item in the Blacklist with the ${cpf} CPF.`
+        const data = await db.read()
+
+        const validCPF = formatCPF(cpf)
+
+        const item = data.blacklist.find(element => element.item.cpf == validCPF)
+
+        if (!item) {
+            result.success = false
+            result.message = `There is not an item with the ${validCPF} CPF in the Blacklist.`
+            return result
+        }
+
+        result.message = `Found an item in the Blacklist with the ${validCPF} CPF.`
         result.item = item
 
         return result
     }
 
     async includeNewItem(blacklistItemEntity: BlacklistItem): Promise<Result> {
-        await db.read()
-
-        db.data = db.data || { blacklist: [] }
-        const item = db.data.blacklist.find(item => item.cpf == blacklistItemEntity.cpf)
 
         const result: Result = {
             success: true,
             message: ''
         }
+
+        if (blacklistItemEntity.cpf.length != 11) {
+            result.success = false
+            result.message = 'The CPF has the wrong number of digits. CPFs have 11 digits.'
+            return result
+        }
+
+        if (blacklistItemEntity.status != BlacklistStatus.Free && blacklistItemEntity.status != BlacklistStatus.Blocked) {
+            result.success = false
+            result.message = `Invalid status. Status can only be 'FREE' or 'BLOCK'`
+            return result
+        }
+
+        const data = await db.read()
+
+        blacklistItemEntity.item.cpf = formatCPF(blacklistItemEntity.cpf)
+
+        const item = data.blacklist.find(element => element.item.cpf == blacklistItemEntity.cpf)
 
         if (item) {
             result.success = false
@@ -60,7 +108,9 @@ export class BlacklistRepository implements IBlacklistRepository {
             return result
         }
 
-        db.data.blacklist.push(blacklistItemEntity)
+        data.blacklist.push(blacklistItemEntity)
+
+        await db.write(data)
 
         result.message = `CPF ${blacklistItemEntity.cpf} has been included in the Blacklist.`
         result.item = blacklistItemEntity
@@ -69,26 +119,36 @@ export class BlacklistRepository implements IBlacklistRepository {
     }
 
     async deleteItemByCPF(cpf: string): Promise<Result> {
-        await db.read()
-
-        db.data = db.data || { blacklist: [] }
-        const item = db.data.blacklist.find(item => item.cpf == cpf)
 
         const result: Result = {
             success: true,
             message: ''
         }
 
-        if (!item) {
+        if (cpf.length != 11) {
             result.success = false
-            result.message = `There is no item with the ${cpf} CPF in the Blacklist.`
+            result.message = 'The CPF has the wrong number of digits. CPFs have 11 digits.'
             return result
         }
 
-        const index: number = db.data.blacklist.indexOf(item)
-        db.data.blacklist.splice(index, 1)
+        const data = await db.read()
 
-        result.message = `CPF ${cpf} successfully deleted from the Blacklist.`
+        const validCPF = formatCPF(cpf)
+
+        const item = data.blacklist.find(element => element.item.cpf == validCPF)
+
+        if (!item) {
+            result.success = false
+            result.message = `There is no item with the ${validCPF} CPF in the Blacklist.`
+            return result
+        }
+
+        const index: number = data.blacklist.indexOf(item)
+        data.blacklist.splice(index, 1)
+
+        await db.write(data)
+
+        result.message = `CPF ${validCPF} successfully deleted from the Blacklist.`
         result.item = item
 
         return result
@@ -101,24 +161,36 @@ export class BlacklistRepository implements IBlacklistRepository {
             message: ''
         }
 
-        await db.read()
+        if (cpf.length != 11) {
+            result.success = false
+            result.message = 'The CPF has the wrong number of digits. CPFs have 11 digits.'
+            return result
+        }
 
-        db.data = db.data || { blacklist: [] }
-        const item = db.data.blacklist.find(item => {
-            if (item.cpf === cpf){
+        const data = await db.read()
 
-                result.item = item
+        const validCPF = formatCPF(cpf)
+
+        data.blacklist.forEach(async element => {
+
+            if (element.item.cpf == validCPF){
 
                 switch (status.toUpperCase()) {
                     case 'FREE': 
-                        item.changeStatusFree()
+                        element.item.status = BlacklistStatus.Free
+                        element.item.updatedAt = new Date()
                         result.success = true
-                        result.message = `${cpf} CPF status has been changed to 'FREE'`
+                        result.message = `${validCPF} CPF status has been changed to 'FREE'`
+                        result.item = element
+                        await db.write(data)
                         break
                     case 'BLOCK':
-                        item.changeStatusBlock()
+                        element.item.status = BlacklistStatus.Blocked
+                        element.item.updatedAt = new Date()
                         result.success = true
-                        result.message = `${cpf} CPF status has been changed to 'BLOCK'`
+                        result.message = `${validCPF} CPF status has been changed to 'BLOCK'`
+                        result.item = element
+                        await db.write(data)
                         break
                     default:
                         result.success = false
@@ -126,14 +198,35 @@ export class BlacklistRepository implements IBlacklistRepository {
                         break
                 }
             } else {
+                
                 result.success = false
-                result.message = `CPF ${cpf} is not in the Blacklist.`
+                result.message = `CPF ${validCPF} is not in the Blacklist.`
             }
         })
 
         return result
     }
 
+    async countCPF(): Promise<Result> {
 
+        const result: Result = {
+            success: true,
+            message: ''
+        }
+
+        let count: number = 0
+
+        const data = await db.read()
+
+        data.blacklist.forEach(item => {
+            count += 1
+        });
+
+        result.message = `Total CPFs in the Blacklist: ${count}.`
+        result.itemCount = count
+
+        return result
+
+    }
 
 }

@@ -5,11 +5,6 @@ export interface IBlacklistItemProps {
     updatedAt: Date
 }
 
-export enum BlacklistStatus {
-    Free = 'FREE',
-    Blocked = 'BLOCK'
-}
-
 export class BlacklistItem implements IBlacklistItemProps{
 
     item: IBlacklistItemProps
@@ -32,23 +27,6 @@ export class BlacklistItem implements IBlacklistItemProps{
 
     get updatedAt(): Date {
         return this.item.updatedAt
-    }
-
-    private changeUpdatedAt() {
-        this.item.updatedAt = new Date()
-    }
-
-    private changeStatus(status: string) {
-        this.item.status = status
-        this.changeUpdatedAt()
-    }
-
-    public changeStatusFree() {
-        this.changeStatus(BlacklistStatus.Free)
-    }
-
-    public changeStatusBlock() {
-        this.changeStatus(BlacklistStatus.Blocked)
     }
 
     static createBlacklistItem(props: IBlacklistItemProps) {

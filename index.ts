@@ -1,39 +1,71 @@
 import express from 'express';
+import { Result } from './module/repositories/IBlacklistRepository'
 import { Router, Request, Response } from 'express'
 import { changeItemStatusUseCase } from './module/useCases/changeItemStatus'
 import { deleteItemUseCase } from './module/useCases/deleteItem'
 import { includeItemUseCase } from './module/useCases/includeItem'
 import { searchItemUseCase } from './module/useCases/searchItem'
+import { countItemsUseCase } from './module/useCases/countItems'
 
 
 const app = express();
+const port = 8000
 
-const route = Router()
+let searchCount: number = 0
 
-app.use(express.json)
+app.use(express.json())
 
-route.get('/', (req: Request, res: Response) => {
-    res.send('Well done!');
+app.get('/', (req: Request, res: Response) => {
+    console.log('testando')
+    res.send('Well done!')
 })
 
-route.get('/search', (req: Request, res: Response) => {
-    res.send('Well done!');
+app.get('/search/:cpf', async (req: Request, res: Response) => {
+    req.params
+    const searchDTO = {
+        cpf: req.params.cpf
+    }
+    const searchedItem: Result = await searchItemUseCase.execute(searchDTO)
+    searchCount += 1
+    res.json(searchedItem)
 })
 
-route.get('/status', (req: Request, res: Response) => {
-    res.send('Well done!');
+app.get('/status', async (req: Request, res: Response) => {
+    const itemCount: Result = await countItemsUseCase.execute()
+    itemCount.searchCount = searchCount
+    itemCount.message += ` Total CPF searches: ${itemCount.searchCount}`
+    res.json(itemCount)
 })
 
-route.post('/include', (req: Request, res: Response) => {
-    res.send('Well done!');
+app.post('/include/:cpf/status/:status', async (req: Request, res: Response) => {
+    req.params
+    const inclusionDTO = { 
+        cpf: req.params.cpf,
+        status: req.params.status
+    }
+    const itemInclusion: Result = await includeItemUseCase.execute(inclusionDTO)
+    res.json(itemInclusion)
 })
 
-route.post('/delete', (req: Request, res: Response) => {
-    res.send('Well done!');
+app.post('/changeStatus/:cpf/status/:status', async (req: Request, res: Response) => {
+    req.params
+    const changeStatusDTO = { 
+        cpf: req.params.cpf,
+        status: req.params.status
+    }
+    const itemStatusChange: Result = await changeItemStatusUseCase.execute(changeStatusDTO)
+    res.json(itemStatusChange)
 })
 
-route.use(route)
+app.post('/delete/:cpf', async (req: Request, res: Response) => {
+    req.params
+    const deletionDTO = { 
+        cpf: req.params.cpf
+    }
+    const itemDeletion: Result = await deleteItemUseCase.execute(deletionDTO)
+    res.json(itemDeletion)
+})
 
-app.listen(3000, () => {
-    console.log('The application is listening on port 3000!');
+app.listen(port, () => {
+    console.log(`The application is listening on port ${port}!`)
 })
