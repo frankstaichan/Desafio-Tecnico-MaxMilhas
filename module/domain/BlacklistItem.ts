@@ -13,19 +13,19 @@ export class BlacklistItem implements IBlacklistItemProps{
         this.item = props
     }
 
-    get cpf(): string {
+    public get cpf(): string {
         return this.item.cpf
     }
 
-    get status(): string {
+    public get status(): string {
         return this.item.status
     }
 
-    get createdAt(): Date {
+    public get createdAt(): Date {
         return this.item.createdAt
     }
 
-    get updatedAt(): Date {
+    public get updatedAt(): Date {
         return this.item.updatedAt
     }
 

@@ -1,4 +1,4 @@
-import express from 'express';
+import * as express from 'express';
 import { Result } from './module/repositories/IBlacklistRepository'
 import { Router, Request, Response } from 'express'
 import { changeItemStatusUseCase } from './module/useCases/changeItemStatus'

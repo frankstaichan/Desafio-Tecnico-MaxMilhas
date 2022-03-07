@@ -13,7 +13,7 @@ export class SearchItemUseCase {
         if (!request.cpf) {
             return {
                 success: false,
-                message: 'CPF for Blacklist search is null'
+                message: 'CPF for Blacklist search is null.'
             }
         }
 

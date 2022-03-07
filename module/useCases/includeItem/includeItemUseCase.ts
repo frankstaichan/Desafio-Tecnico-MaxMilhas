@@ -14,13 +14,13 @@ export class IncludeItemUseCase {
         if (!request.cpf || !request.status) {
             return {
                 success: false,
-                message: 'CPF and/or Status for Blacklist inclusion are null'
+                message: 'CPF and/or Status for Blacklist inclusion are null.'
             }
         }
 
         const blacklistProps: IBlacklistItemProps = {
             cpf: request.cpf,
-            status: request.status,
+            status: request.status.toUpperCase(),
             createdAt: new Date(),
             updatedAt: new Date()
         }
