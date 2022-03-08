@@ -57,7 +57,7 @@ app.post('/changeStatus/:cpf/status/:status', async (req: Request, res: Response
     res.json(itemStatusChange)
 })
 
-app.post('/delete/:cpf', async (req: Request, res: Response) => {
+app.delete('/delete/:cpf', async (req: Request, res: Response) => {
     req.params
     const deletionDTO = { 
         cpf: req.params.cpf
