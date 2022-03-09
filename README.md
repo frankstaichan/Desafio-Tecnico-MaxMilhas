@@ -60,7 +60,7 @@ cd <CAMINHO DA PASTA DO PROJETO>
 Após isto deve-se utilizar o comando:
 
 ```command line
-docker build -t desafio_maxmilhas
+docker build -t desafio_maxmilhas .
 ```
 
 ### 1.2 - Docker Run
