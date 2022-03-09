@@ -22,12 +22,24 @@
         - [2.1.1.1 - Parametros da Requisição Detalhados](#2111---parametros-da-requisição-detalhados)
       - [2.1.2 - Resposta do Endpoint](#212---resposta-do-endpoint)
         - [2.1.2.1 - Exemplo de Resposta](#2121---exemplo-de-resposta)
-  - [3 - Mudança de status de um item](#3---mudança-de-status-de-um-item)
+  - [3 - Mudança de Status de um Item](#3---mudança-de-status-de-um-item)
     - [3.1 - Endpoint](#31---endpoint)
       - [3.1.1 - Configuração da Requisição](#311---configuração-da-requisição)
         - [3.1.1.1 - Parametros da Requisição Detalhados](#3111---parametros-da-requisição-detalhados)
       - [3.1.2 - Resposta do Endpoint](#312---resposta-do-endpoint)
         - [3.1.2.1 - Exemplo de Resposta](#3121---exemplo-de-resposta)
+  - [4 - Deleção de Item](#4---deleção-de-item)
+    - [4.1 - Endpoint](#41---endpoint)
+      - [4.1.1 - Configuração da Requisição](#411---configuração-da-requisição)
+        - [4.1.1.1 - Parametros da Requisição Detalhados](#4111---parametros-da-requisição-detalhados)
+      - [4.1.2 - Resposta do Endpoint](#412---resposta-do-endpoint)
+        - [4.1.2.1 - Exemplo de Resposta](#4121---exemplo-de-resposta)
+  - [5 - Pesquisa de um Item](#5---pesquisa-de-um-item)
+    - [5.1 - Endpoint](#51---endpoint)
+      - [5.1.1 - Configuração da Requisição](#511---configuração-da-requisição)
+        - [5.1.1.1 - Parametros da Requisição Detalhados](#5111---parametros-da-requisição-detalhados)
+      - [5.1.2 - Resposta do Endpoint](#512---resposta-do-endpoint)
+        - [5.1.2.1 - Exemplo de Resposta](#5121---exemplo-de-resposta)
 # Introdução
 Este projeto conta com um serviço responsável pelo gerenciamento de uma lista de CPFs e seus status correspondentes.
 
@@ -162,7 +174,7 @@ STATUS: `Status a ser registrado`
 }
 ```
 
-## 3 - Mudança de status de um item
+## 3 - Mudança de Status de um Item
 
 É possível alterar o status de um CPF na Blacklist apenas informando o número do CPF sem caracteres especiais ("." ou "-") e o status a ser alterado, podendo este ser `FREE` ou `BLOCK`.
   
@@ -178,15 +190,15 @@ STATUS: `Status a ser registrado`
 | - | - | - | - |
 | `url`  | URL para Requisição | `/changeStatus/:cpf/:status` | - |
 | `method`  | Método HTTP da Requisição | `POST`   | - |
-| `baseURL`  | URL base para Requisição | `http://localhost:8000/include/:cpf/:status` | - |
+| `baseURL`  | URL base para Requisição | `http://localhost:8000/changeStatus/:cpf/:status` | - |
 | `params`  | Parâmetros não necessários para esta requisição | `CPF`, `STATUS` | - |
 | `headers`  | Headers não necessários para esta requisição | - | - |
 
 ##### 3.1.1.1 - Parametros da Requisição Detalhados
 
 ```javascript
-CPF: `CPF a ser registrado`
-STATUS: `Status a ser registrado`
+CPF: `CPF a ser alterado`
+STATUS: `Status a ser alterado`
 ```
 
 #### 3.1.2 - Resposta do Endpoint
@@ -203,6 +215,96 @@ STATUS: `Status a ser registrado`
             "status": "BLOCK",
             "createdAt": "2022-03-09T18:08:18.764Z",
             "updatedAt": "2022-03-09T18:13:12.731Z"
+        }
+    }
+}
+```
+
+## 4 - Deleção de Item
+
+É possível alterar o status de um CPF na Blacklist apenas informando o número do CPF sem caracteres especiais ("." ou "-") e o status a ser alterado, podendo este ser `FREE` ou `BLOCK`.
+  
+### 4.1 - Endpoint
+
+```url
+/delete/:cpf
+```
+
+#### 4.1.1 - Configuração da Requisição
+
+| Parameter | Description | Value |  Obs. |
+| - | - | - | - |
+| `url`  | URL para Requisição | `/delete/:cpf` | - |
+| `method`  | Método HTTP da Requisição | `DELETE`   | - |
+| `baseURL`  | URL base para Requisição | `http://localhost:8000/delete/:cpf` | - |
+| `params`  | Parâmetros não necessários para esta requisição | `CPF` | - |
+| `headers`  | Headers não necessários para esta requisição | - | - |
+
+##### 4.1.1.1 - Parametros da Requisição Detalhados
+
+```javascript
+CPF: `CPF a ser deletado`
+```
+
+#### 4.1.2 - Resposta do Endpoint
+
+##### 4.1.2.1 - Exemplo de Resposta
+
+```JSON
+{
+    "success": true,
+    "message": "CPF 157.826.354-78 successfully deleted from the Blacklist.",
+    "item": {
+        "item": {
+            "cpf": "157.826.354-78",
+            "status": "BLOCK",
+            "createdAt": "2022-03-09T18:08:18.764Z",
+            "updatedAt": "2022-03-09T18:13:12.731Z"
+        }
+    }
+}
+```
+
+## 5 - Pesquisa de um Item
+
+É possível alterar o status de um CPF na Blacklist apenas informando o número do CPF sem caracteres especiais ("." ou "-") e o status a ser alterado, podendo este ser `FREE` ou `BLOCK`.
+  
+### 5.1 - Endpoint
+
+```url
+/search/:cpf
+```
+
+#### 5.1.1 - Configuração da Requisição
+
+| Parameter | Description | Value |  Obs. |
+| - | - | - | - |
+| `url`  | URL para Requisição | `/search/:cpf` | - |
+| `method`  | Método HTTP da Requisição | `GET`   | - |
+| `baseURL`  | URL base para Requisição | `http://localhost:8000/search/:cpf` | - |
+| `params`  | Parâmetros não necessários para esta requisição | `CPF` | - |
+| `headers`  | Headers não necessários para esta requisição | - | - |
+
+##### 5.1.1.1 - Parametros da Requisição Detalhados
+
+```javascript
+CPF: `CPF a ser pesquisado`
+```
+
+#### 5.1.2 - Resposta do Endpoint
+
+##### 5.1.2.1 - Exemplo de Resposta
+
+```JSON
+{
+    "success": true,
+    "message": "Found an item in the Blacklist with the CPF 123.456.789-11.",
+    "item": {
+        "item": {
+            "cpf": "123.456.789-11",
+            "status": "FREE",
+            "createdAt": "2022-03-08T01:45:17.710Z",
+            "updatedAt": "2022-03-09T17:57:19.207Z"
         }
     }
 }
