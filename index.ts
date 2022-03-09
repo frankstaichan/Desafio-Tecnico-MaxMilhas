@@ -37,7 +37,7 @@ app.get('/status', async (req: Request, res: Response) => {
     res.json(itemCount)
 })
 
-app.post('/include/:cpf/status/:status', async (req: Request, res: Response) => {
+app.post('/include/:cpf/:status', async (req: Request, res: Response) => {
     req.params
     const inclusionDTO = { 
         cpf: req.params.cpf,
@@ -47,7 +47,7 @@ app.post('/include/:cpf/status/:status', async (req: Request, res: Response) => 
     res.json(itemInclusion)
 })
 
-app.post('/changeStatus/:cpf/status/:status', async (req: Request, res: Response) => {
+app.post('/changeStatus/:cpf/:status', async (req: Request, res: Response) => {
     req.params
     const changeStatusDTO = { 
         cpf: req.params.cpf,
